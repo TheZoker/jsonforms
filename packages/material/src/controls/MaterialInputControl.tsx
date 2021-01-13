@@ -30,8 +30,9 @@ import {
   isDescriptionHidden,
   isPlainLabel
 } from '@jsonforms/core';
-import { Control } from '@jsonforms/react';
-
+import { areEqual, Control } from '@jsonforms/react';
+import { JsonFormsTheme } from '../util';
+import { useTheme } from '@material-ui/core/styles';
 import { Hidden, InputLabel } from '@material-ui/core';
 import { FormControl, FormHelperText } from '@material-ui/core';
 import merge from 'lodash/merge';
@@ -40,72 +41,74 @@ interface WithInput {
   input: any;
 }
 
-export abstract class MaterialInputControl extends Control<
-  ControlProps & WithInput,
-  ControlState
-> {
-  render() {
-    const {
-      id,
-      description,
-      errors,
-      label,
-      uischema,
-      visible,
-      required,
-      config,
-      input
-    } = this.props;
-    const isValid = errors.length === 0;
-    const appliedUiSchemaOptions = merge({}, config, uischema.options);
+export const MaterialInputControl = React.memo((props: Control<ControlProps & WithInput,ControlState> & ControlProps & WithInput & ControlState) => {
+  const {
+    id,
+    description,
+    errors,
+    label,
+    uischema,
+    visible,
+    required,
+    config,
+    input,
+    onFocus,
+    onBlur,
+    isFocused
+  } = props;
+  const isValid = errors.length === 0;
+  const appliedUiSchemaOptions = merge({}, config, uischema.options);
 
-    const showDescription = !isDescriptionHidden(
-      visible,
-      description,
-      this.state.isFocused,
-      appliedUiSchemaOptions.showUnfocusedDescription
-    );
+  const showDescription = !isDescriptionHidden(
+    visible,
+    description,
+    isFocused,
+    appliedUiSchemaOptions.showUnfocusedDescription
+  );
 
-    const firstFormHelperText = showDescription
-      ? description
-      : !isValid
-      ? errors
-      : null;
-    const secondFormHelperText = showDescription && !isValid ? errors : null;
-    const InnerComponent = input;
+  const firstFormHelperText = showDescription
+    ? description
+    : !isValid
+    ? errors
+    : null;
+  const secondFormHelperText = showDescription && !isValid ? errors : null;
+  const InnerComponent = input;
 
-    return (
-      <Hidden xsUp={!visible}>
-        <FormControl
-          fullWidth={!appliedUiSchemaOptions.trim}
-          onFocus={this.onFocus}
-          onBlur={this.onBlur}
-          id={id}
+  const theme: JsonFormsTheme = useTheme();
+  const inputLabelStyle = theme.jsonforms?.input?.label || '';
+
+  return (
+    <Hidden xsUp={!visible}>
+      <FormControl
+        fullWidth={!appliedUiSchemaOptions.trim}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        id={id}
+      >
+        <InputLabel
+          htmlFor={id + '-input'}
+          error={!isValid}
+          style={inputLabelStyle}
         >
-          <InputLabel
-            htmlFor={id + '-input'}
-            error={!isValid}
-          >
-            {computeLabel(
-              isPlainLabel(label) ? label : label.default,
-              required,
-              appliedUiSchemaOptions.hideRequiredAsterisk
-            )}
-          </InputLabel>
-          <InnerComponent
-            {...this.props}
-            id={id + '-input'}
-            isValid={isValid}
-            visible={visible}
-          />
-          <FormHelperText error={!isValid && !showDescription}>
-            {firstFormHelperText}
-          </FormHelperText>
-          <FormHelperText error={!isValid}>
-            {secondFormHelperText}
-          </FormHelperText>
-        </FormControl>
-      </Hidden>
-    );
-  }
-}
+          {computeLabel(
+            isPlainLabel(label) ? label : label.default,
+            required,
+            appliedUiSchemaOptions.hideRequiredAsterisk
+          )}
+        </InputLabel>
+        <InnerComponent
+          {...props}
+          id={id + '-input'}
+          isValid={isValid}
+          visible={visible}
+        />
+        <FormHelperText error={!isValid && !showDescription}>
+          {firstFormHelperText}
+        </FormHelperText>
+        <FormHelperText error={!isValid}>
+          {secondFormHelperText}
+        </FormHelperText>
+      </FormControl>
+    </Hidden>
+  );
+}, areEqual);
