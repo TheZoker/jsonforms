@@ -62,7 +62,7 @@
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-typescript2": "^0.29.0",
     "rollup-plugin-vue": "^6.0.0",
-    "typedoc": "^0.15.3",
+    "typedoc": "^0.19.2",
     "typescript": "3.8.3",
     "vue": "^3.0.3",
     "vue-jest": "^5.0.0-0",
